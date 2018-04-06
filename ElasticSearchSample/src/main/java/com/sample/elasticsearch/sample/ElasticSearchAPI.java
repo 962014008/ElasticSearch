@@ -1,6 +1,8 @@
 package com.sample.elasticsearch.sample;
 
 import java.io.File;
+import static org.elasticsearch.common.xcontent.XContentFactory.*;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -9,6 +11,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -57,6 +61,20 @@ public class ElasticSearchAPI {
 		IndexResponse response = client.prepareIndex(indexName,type,id).setSource(map).get();
 		System.out.println(response.toString());	
 	}
+	
+	public boolean loadBulkdata(Products products) {
+
+		BulkRequestBuilder bulkRequest = client.prepareBulk();
+		// either use client#prepare, or use Requests# to directly build index/delete requests
+		for (Product product : products.product) {
+			bulkRequest.add(client.prepareIndex(indexName, type, product.sku)
+			        .setSource(product.toMap())
+			        );
+		}
+		BulkResponse bulkResponse = bulkRequest.get();
+		return bulkResponse.hasFailures();
+	}
+	
 	public void close() {
 		client.close();
 	}

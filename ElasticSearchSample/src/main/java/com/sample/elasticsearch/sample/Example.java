@@ -37,23 +37,28 @@ public class Example {
 		elasticSearchAPI.createIndex();
 		elasticSearchAPI.addMapping(MAPPING_DATA);
 		loadData();
-		elasticSearchAPI.deleteByQuery("type", "Bundle");
+		//elasticSearchAPI.deleteByQuery("type", "Bundle");
 		elasticSearchAPI.close();
 
 	}
 
 	public void loadData() {
 		Products products = prepareSource();
-		for (Product product : products.product) {
+		
+		//one by one
+		/*for (Product product : products.product) {
 			elasticSearchAPI.loadData(product.toMap(), product.sku);
-		}
+		}*/
+		
+		//bulk request
+		elasticSearchAPI.loadBulkdata(products);
 	}
 
 	private Products prepareSource() {
 		Products productRecordRoot = null;
 		try {
 			File file = new File(this.getClass().getClassLoader()
-					.getResource("products_0171_1313731193_to_9999256400050028.xml").getFile());
+					.getResource("products_0167_1312126259_to_1312619140.xml").getFile());
 			JAXBContext jaxbContext = JAXBContext.newInstance(Products.class);
 			Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 			productRecordRoot = (Products) jaxbUnmarshaller.unmarshal(file);
