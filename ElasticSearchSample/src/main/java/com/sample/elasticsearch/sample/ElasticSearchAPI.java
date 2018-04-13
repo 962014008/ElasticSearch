@@ -5,6 +5,7 @@ import static org.elasticsearch.common.xcontent.XContentFactory.*;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
@@ -30,70 +31,67 @@ public class ElasticSearchAPI {
 	private static final int PORT = 9300;
 
 	private String indexName;
-	
+
 	private String type;
-	
+
 	private TransportClient client = null;
-	
-	
+
 	public ElasticSearchAPI(String indexName, String type) {
-		this.indexName=indexName;
-		this.type=type;
+		this.indexName = indexName;
+		this.type = type;
 	}
 
 	@SuppressWarnings("resource")
 	public void setup() {
-		
-		
+
 		try {
 			client = new PreBuiltTransportClient(Settings.EMPTY)
-			        .addTransportAddress(new TransportAddress(InetAddress.getByName(HOST_URL), PORT));
+					.addTransportAddress(new TransportAddress(InetAddress.getByName(HOST_URL), PORT));
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void addMapping(String mappingData) {
-		client.admin().indices().preparePutMapping(indexName).setType(type).setSource(mappingData,XContentType.JSON).get();
+		client.admin().indices().preparePutMapping(indexName).setType(type).setSource(mappingData, XContentType.JSON)
+				.get();
 	}
-	
-	public void loadData(Map<String,Object> map,String id ) {
-		IndexResponse response = client.prepareIndex(indexName,type,id).setSource(map).get();
-		System.out.println(response.toString());	
+
+	public void loadData(Map<String, Object> map, String id) {
+		IndexResponse response = client.prepareIndex(indexName, type, id).setSource(map).get();
+		System.out.println(response.toString());
 	}
-	
-	public boolean loadBulkdata(Products products) {
+
+	public boolean loadBulkdata(List<Products> productRecordRootList) {
 
 		BulkRequestBuilder bulkRequest = client.prepareBulk();
-		// either use client#prepare, or use Requests# to directly build index/delete requests
-		for (Product product : products.product) {
-			bulkRequest.add(client.prepareIndex(indexName, type, product.sku)
-			        .setSource(product.toMap())
-			        );
+		// either use client#prepare, or use Requests# to directly build index/delete
+		// requests
+		for (Products products : productRecordRootList) {
+			for (Product product : products.product) {
+				bulkRequest.add(client.prepareIndex(indexName, type, product.sku).setSource(product.toMap()));
+			}
 		}
 		BulkResponse bulkResponse = bulkRequest.get();
-		return bulkResponse.hasFailures();
+		System.out.println("Bulk Loda performed");
+		return !bulkResponse.hasFailures();
 	}
-	
+
 	public void close() {
 		client.close();
 	}
-	
+
 	public void cleanAllExistingIndices() {
 		client.admin().indices().prepareDelete("_all").get();
 	}
-	
+
 	public void createIndex() {
 		client.admin().indices().prepareCreate(indexName).get();
 	}
-	
-	
 
 	public void deleteByQuery(String key, String value) {
 		BulkByScrollResponse response = DeleteByQueryAction.INSTANCE.newRequestBuilder(client)
-			    .filter(QueryBuilders.matchQuery(key, value)) 
-			    .source(indexName)                                  
-			    .get();                                             
-		System.out.println(response.getDeleted());    		
+				.filter(QueryBuilders.matchQuery(key, value)).source(indexName).get();
+		System.out.println(response.getDeleted());
 	}
 }

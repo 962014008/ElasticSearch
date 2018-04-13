@@ -74,6 +74,8 @@ class Product {
 	@XmlElement
 	String manufacturer;
 	@XmlElement
+	String color;
+	@XmlElement
 	Double weight;
 	@XmlElement
 	Double shippingWeight;
@@ -122,6 +124,7 @@ class Product {
 		document.put("productSubclass", productSubclass);
 		document.put("department", department);
 		document.put("manufacturer", manufacturer);
+		document.put("color", color);
 		document.put("weight", weight);
 		document.put("shippingWeight", shippingWeight);
 		document.put("longDescription", longDescription);
