@@ -107,7 +107,7 @@ class Product {
 		document.put("priceUpdateDate", priceUpdateDate);
 		document.put("digital", digital);
 		document.put("productTemplate", productTemplate);
-		document.put("categories", categories.stream().map(elem -> elem.name).collect(toList()));
+//		document.put("categories", categories.stream().map(elem -> elem.name).collect(toList()));
 		document.put("customerReviewCount", customerReviewCount);
 		document.put("customerReviewAverage", customerReviewAverage);
 		document.put("customerTopRated", customerTopRated);
